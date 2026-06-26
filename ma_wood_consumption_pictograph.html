@@ -1,0 +1,122 @@
+
+<style>
+  .wrap { padding: 1.5rem 0; font-family: var(--font-sans); max-width: 680px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  .title-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+  .chart-title { font-size: 17px; font-weight: 500; color: var(--text-primary); }
+  .subtitle-label { font-size: 13px; color: var(--text-secondary); }
+  .intro-text { font-size: 15px; line-height: 1.6; color: var(--text-primary); margin-bottom: 1.25rem; }
+  .legend { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; cursor: pointer; user-select: none; }
+  .legend-sq { width: 18px; height: 18px; border-radius: 3px; flex-shrink: 0; }
+  .grid { display: grid; grid-template-columns: repeat(10, 26px); gap: 4px; }
+  .sq { width: 26px; height: 26px; border-radius: 3px; cursor: default; position: relative; box-sizing: border-box; transition: opacity 0.12s; }
+  .sq.in  { background: #388557; }
+  .sq.out { background: #680A1D; }
+  .sq.dim { opacity: 0.15; }
+  .tooltip {
+    position: absolute; z-index: 10;
+    background: var(--surface-2); border: 0.5px solid var(--border-strong);
+    border-radius: 6px; padding: 5px 9px;
+    font-size: 12px; color: var(--text-primary);
+    pointer-events: none; white-space: nowrap;
+    display: none; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  }
+  .stats { display: flex; gap: 1.5rem; margin-top: 1.5rem; flex-wrap: wrap; }
+  .stat-card { background: var(--surface-1); border-radius: 10px; padding: 1rem 1.25rem; min-width: 140px; }
+  .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .stat-val { font-size: 28px; font-weight: 500; }
+  .caption { font-size: 12px; color: var(--text-muted); margin-top: 1.5rem; line-height: 1.5; }
+</style>
+
+<div class="wrap">
+  <p class="sr-only">Waffle chart: wood consumed in Massachusetts. 394 squares total, each representing 1 million cubic feet. 28 green squares show wood produced in-state (7%). 366 dark red squares show wood produced out of state (93%).</p>
+
+  <div class="title-row">
+    <span class="chart-title">Wood consumed in Massachusetts</span>
+    <span class="subtitle-label">Each square = 1 million cubic feet</span>
+  </div>
+
+  <div class="intro-text">
+    Each square represents one million cubic feet of wood consumed in Massachusetts, colored by where it was produced.
+  </div>
+
+  <div class="legend">
+    <div class="legend-item" id="legendIn">
+      <div class="legend-sq" style="background:#388557;" aria-hidden="true"></div>
+      <span style="color:#388557;">Produced in state</span>
+    </div>
+    <div class="legend-item" id="legendOut">
+      <div class="legend-sq" style="background:#680A1D;" aria-hidden="true"></div>
+      <span style="color:#680A1D;">Produced out of state</span>
+    </div>
+  </div>
+
+  <div class="grid" id="grid" role="img" aria-label="Waffle chart: 28 of 394 squares are green (in-state), 366 are dark red (out-of-state)"></div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-label">Produced in state</div>
+      <div class="stat-val" style="color:#388557;">7%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Produced out of state</div>
+      <div class="stat-val" style="color:#680A1D;">93%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total consumption</div>
+      <div class="stat-val" style="font-size:22px; color:var(--text-primary);">394 M ft³</div>
+    </div>
+  </div>
+
+  <div class="caption">
+    <strong>Massachusetts</strong> produces only ~7% of the wood it consumes, despite being 60% forested. The 2002 <em>Illusion of Preservation</em> paper found this figure was just 2%.
+    <br><br>Source: <em>Beyond the "Illusion of Preservation"</em>, Littlefield et al., 2024 / MassWoods.org. Numbers derived from USDA Forest Service FIA program and income-adjusted per capita consumption rates.
+  </div>
+</div>
+
+<script>
+const TOTAL = 394;
+const IN_COUNT = Math.round(0.07 * TOTAL);
+const grid = document.getElementById('grid');
+const squares = [];
+let hoverType = null;
+
+for (let i = 0; i < TOTAL; i++) {
+  const type = i < IN_COUNT ? 'in' : 'out';
+  const sq = document.createElement('div');
+  sq.className = `sq ${type}`;
+  sq.dataset.type = type;
+
+  const tip = document.createElement('div');
+  tip.className = 'tooltip';
+  tip.textContent = '1 million cubic feet';
+  sq.appendChild(tip);
+
+  sq.addEventListener('mouseenter', () => {
+    tip.style.display = 'block';
+    setHighlight(type);
+  });
+  sq.addEventListener('mouseleave', () => {
+    tip.style.display = 'none';
+    setHighlight(null);
+  });
+
+  grid.appendChild(sq);
+  squares.push(sq);
+}
+
+function setHighlight(activeType) {
+  hoverType = activeType;
+  squares.forEach(sq => {
+    sq.classList.toggle('dim', activeType !== null && sq.dataset.type !== activeType);
+  });
+}
+
+['legendIn', 'legendOut'].forEach(id => {
+  const el = document.getElementById(id);
+  const type = id === 'legendIn' ? 'in' : 'out';
+  el.addEventListener('mouseenter', () => setHighlight(type));
+  el.addEventListener('mouseleave', () => setHighlight(null));
+});
+</script>

@@ -1,123 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wood consumed in Massachusetts</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body, html { margin: 0; padding: 0; background: #ffffff; }
+    .wrap {
+      padding: 2rem 1.5rem;
+      font-family: 'Noto Sans', sans-serif;
+      max-width: 520px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+    .chart-title {
+      font-size: 24px; font-weight: 500; color: #1a1a18;
+      margin-bottom: 6px; line-height: 1.3;
+    }
+    .subtitle-label {
+      font-size: 15px; color: #52514e; margin-bottom: 1rem;
+    }
+    .intro-text {
+      font-size: 18px; line-height: 1.65; color: #1a1a18;
+      margin-bottom: 1.5rem; text-align: left;
+    }
+    .legend {
+      display: flex; justify-content: center; align-items: center;
+      gap: 1.5rem; margin-bottom: 1.25rem; flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 15px; font-weight: 500;
+      cursor: pointer; user-select: none;
+    }
+    .legend-sq { width: 22px; height: 22px; border-radius: 4px; flex-shrink: 0; }
+    .grid-wrap { display: flex; justify-content: center; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(10, 40px);
+      gap: 6px;
+    }
+    .sq {
+      width: 40px; height: 40px; border-radius: 4px;
+      cursor: default; position: relative;
+      transition: opacity 0.12s;
+    }
+    .sq.in  { background: #388557; }
+    .sq.out { background: #680A1D; }
+    .sq.dim { opacity: 0.15; }
+    .tooltip {
+      position: absolute; z-index: 10;
+      background: rgba(30, 30, 28, 0.88);
+      color: #ffffff;
+      border-radius: 5px; padding: 5px 10px;
+      font-size: 12px; font-family: 'Noto Sans', sans-serif;
+      pointer-events: none; white-space: nowrap;
+      display: none;
+      bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    }
+    .tooltip::after {
+      content: ''; position: absolute;
+      top: 100%; left: 50%; transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: rgba(30, 30, 28, 0.88);
+    }
+    .stats {
+      display: flex; justify-content: center;
+      gap: 1.5rem; margin-top: 2rem; flex-wrap: wrap;
+    }
+    .stat-card {
+      background: #f5f5f3; border-radius: 10px;
+      padding: 1rem 1.25rem; min-width: 110px;
+    }
+    .stat-label {
+      font-size: 12px; color: #898781; margin-bottom: 4px;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .stat-val { font-size: 28px; font-weight: 500; }
+    .caption {
+      font-size: 12px; color: #898781;
+      margin-top: 1.5rem; line-height: 1.6; text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="sr-only">Waffle chart: wood consumed in Massachusetts. 394 squares total, each representing 1 million cubic feet. 28 green squares show wood produced in-state (7%). 366 dark red squares show wood produced out of state (93%).</p>
 
-<style>
-  * { box-sizing: border-box; }
-  body, html { margin: 0; padding: 0; }
-  .wrap { padding: 2rem 1.5rem; font-family: var(--font-sans); max-width: 400px; margin: 0 auto; text-align: center; }
-  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-  .chart-title { font-size: 24px; font-weight: 500; color: var(--text-primary); margin-bottom: 6px; line-height: 1.3; }
-  .subtitle-label { font-size: 15px; color: var(--text-secondary); margin-bottom: 1rem; }
-  .intro-text { font-size: 18px; line-height: 1.65; color: var(--text-primary); margin-bottom: 1.5rem; text-align: left; }
-  .legend { display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
-  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 500; cursor: pointer; user-select: none; }
-  .legend-sq { width: 18px; height: 18px; border-radius: 3px; flex-shrink: 0; }
-  .grid-wrap { display: flex; justify-content: center; }
-  .grid { display: grid; grid-template-columns: repeat(10, 26px); gap: 4px; }
-  .sq { width: 26px; height: 26px; border-radius: 3px; cursor: default; position: relative; transition: opacity 0.12s; }
-  .sq.in  { background: #388557; }
-  .sq.out { background: #680A1D; }
-  .sq.dim { opacity: 0.15; }
-  .tooltip {
-    position: absolute; z-index: 10;
-    background: rgba(30, 30, 28, 0.88);
-    color: #ffffff;
-    border-radius: 5px; padding: 5px 10px;
-    font-size: 12px; font-family: 'Noto Sans', sans-serif;
-    pointer-events: none; white-space: nowrap;
-    display: none;
-    bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
-  }
-  .tooltip::after {
-    content: ''; position: absolute;
-    top: 100%; left: 50%; transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: rgba(30, 30, 28, 0.88);
-  }
-  .stats { display: flex; justify-content: center; gap: 1.5rem; margin-top: 1.5rem; flex-wrap: wrap; }
-  .stat-card { background: var(--surface-1); border-radius: 10px; padding: 1rem 1.25rem; min-width: 110px; }
-  .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
-  .stat-val { font-size: 28px; font-weight: 500; }
-  .caption { font-size: 12px; color: var(--text-muted); margin-top: 1.5rem; line-height: 1.6; text-align: left; }
-</style>
+    <div class="chart-title">Wood consumed in Massachusetts</div>
+    <div class="subtitle-label">Each square = 1 million cubic feet</div>
 
-<div class="wrap">
-  <p class="sr-only">Waffle chart: wood consumed in Massachusetts. 394 squares total, each representing 1 million cubic feet. 28 green squares show wood produced in-state (7%). 366 dark red squares show wood produced out of state (93%).</p>
+    <p class="intro-text">
+      Each square represents one million cubic feet of wood consumed in Massachusetts, colored by where it was produced.
+    </p>
 
-  <div class="chart-title">Wood consumed in Massachusetts</div>
-  <div class="subtitle-label">Each square = 1 million cubic feet</div>
-
-  <p class="intro-text">
-    Each square represents one million cubic feet of wood consumed in Massachusetts, colored by where it was produced.
-  </p>
-
-  <div class="legend" aria-hidden="true">
-    <div class="legend-item" id="legendIn">
-      <div class="legend-sq" style="background:#388557;"></div>
-      <span style="color:#388557;">Produced in state</span>
+    <div class="legend" aria-hidden="true">
+      <div class="legend-item" id="legendIn">
+        <div class="legend-sq" style="background:#388557;"></div>
+        <span style="color:#388557;">Produced in state</span>
+      </div>
+      <div class="legend-item" id="legendOut">
+        <div class="legend-sq" style="background:#680A1D;"></div>
+        <span style="color:#680A1D;">Produced out of state</span>
+      </div>
     </div>
-    <div class="legend-item" id="legendOut">
-      <div class="legend-sq" style="background:#680A1D;"></div>
-      <span style="color:#680A1D;">Produced out of state</span>
+
+    <div class="grid-wrap">
+      <div class="grid" id="grid" role="img" aria-label="Waffle chart showing Massachusetts wood consumption: 28 of 394 squares are green (produced in-state, 7%) and 366 are dark red (produced out of state, 93%). Each square equals 1 million cubic feet."></div>
+    </div>
+
+    <div class="stats" aria-hidden="true">
+      <div class="stat-card">
+        <div class="stat-label">In state</div>
+        <div class="stat-val" style="color:#388557;">7%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Out of state</div>
+        <div class="stat-val" style="color:#680A1D;">93%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total</div>
+        <div class="stat-val" style="font-size:22px; color:#1a1a18;">394 M ft³</div>
+      </div>
+    </div>
+
+    <p class="sr-only">Summary: 7% of wood consumed in Massachusetts is produced in-state. 93% is produced out of state. Total consumption is 394 million cubic feet.</p>
+
+    <div class="caption">
+      <strong>Massachusetts</strong> produces only ~7% of the wood it consumes, despite being 60% forested. The 2002 <em>Illusion of Preservation</em> paper found this figure was just 2%.
+      <br><br>Source: <em>Beyond the "Illusion of Preservation"</em>, Littlefield et al., 2024 / MassWoods.org. Numbers derived from USDA Forest Service FIA program and income-adjusted per capita consumption rates.
     </div>
   </div>
 
-  <div class="grid-wrap">
-    <div class="grid" id="grid" role="img" aria-label="Waffle chart showing Massachusetts wood consumption: 28 of 394 squares are green (produced in-state, 7%) and 366 are dark red (produced out of state, 93%). Each square equals 1 million cubic feet."></div>
-  </div>
+  <script>
+    const TOTAL = 394;
+    const IN_COUNT = Math.round(0.07 * TOTAL);
+    const grid = document.getElementById('grid');
+    const squares = [];
 
-  <div class="stats" aria-hidden="true">
-    <div class="stat-card">
-      <div class="stat-label">In state</div>
-      <div class="stat-val" style="color:#388557;">7%</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Out of state</div>
-      <div class="stat-val" style="color:#680A1D;">93%</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Total</div>
-      <div class="stat-val" style="font-size:22px; color:var(--text-primary);">394 M ft³</div>
-    </div>
-  </div>
+    for (let i = 0; i < TOTAL; i++) {
+      const type = i < IN_COUNT ? 'in' : 'out';
+      const sq = document.createElement('div');
+      sq.className = `sq ${type}`;
+      sq.dataset.type = type;
+      sq.setAttribute('aria-hidden', 'true');
 
-  <p class="sr-only">Summary: 7% of wood consumed in Massachusetts is produced in-state. 93% is produced out of state. Total consumption is 394 million cubic feet.</p>
+      const tip = document.createElement('div');
+      tip.className = 'tooltip';
+      tip.textContent = '1 million cubic feet';
+      sq.appendChild(tip);
 
-</div>
+      sq.addEventListener('mouseenter', () => { tip.style.display = 'block'; setHighlight(type); });
+      sq.addEventListener('mouseleave', () => { tip.style.display = 'none'; setHighlight(null); });
 
-<script>
-const TOTAL = 394;
-const IN_COUNT = Math.round(0.07 * TOTAL);
-const grid = document.getElementById('grid');
-const squares = [];
+      grid.appendChild(sq);
+      squares.push(sq);
+    }
 
-for (let i = 0; i < TOTAL; i++) {
-  const type = i < IN_COUNT ? 'in' : 'out';
-  const sq = document.createElement('div');
-  sq.className = `sq ${type}`;
-  sq.dataset.type = type;
-  sq.setAttribute('aria-hidden', 'true');
+    function setHighlight(activeType) {
+      squares.forEach(sq => {
+        sq.classList.toggle('dim', activeType !== null && sq.dataset.type !== activeType);
+      });
+    }
 
-  const tip = document.createElement('div');
-  tip.className = 'tooltip';
-  tip.textContent = '1 million cubic feet';
-  sq.appendChild(tip);
-
-  sq.addEventListener('mouseenter', () => { tip.style.display = 'block'; setHighlight(type); });
-  sq.addEventListener('mouseleave', () => { tip.style.display = 'none'; setHighlight(null); });
-
-  grid.appendChild(sq);
-  squares.push(sq);
-}
-
-function setHighlight(activeType) {
-  squares.forEach(sq => {
-    sq.classList.toggle('dim', activeType !== null && sq.dataset.type !== activeType);
-  });
-}
-
-['legendIn', 'legendOut'].forEach(id => {
-  const el = document.getElementById(id);
-  const type = id === 'legendIn' ? 'in' : 'out';
-  el.addEventListener('mouseenter', () => setHighlight(type));
-  el.addEventListener('mouseleave', () => setHighlight(null));
-});
-</script>
+    ['legendIn', 'legendOut'].forEach(id => {
+      const el = document.getElementById(id);
+      const type = id === 'legendIn' ? 'in' : 'out';
+      el.addEventListener('mouseenter', () => setHighlight(type));
+      el.addEventListener('mouseleave', () => setHighlight(null));
+    });
+  </script>
+</body>
+</html>
